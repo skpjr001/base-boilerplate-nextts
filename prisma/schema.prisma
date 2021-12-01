@@ -17,6 +17,41 @@ enum UserPlan {
   PRO
 }
 
+model SiteType {
+  id                      Int                    @id @default(autoincrement())
+  title                   String
+  slug                    String
+  description             String?
+  position                Int                    @default(0)
+  hidden                  Boolean                @default(false)
+  users                   User[]                 @relation("user_sitetype")
+  userId                  Int?
+  siteName                String?
+  customInputs            SiteTypeCustomInput[]
+  timeZone                String?
+  //price                   Int                    @default(0)
+  //currency                String                 @default("usd")
+
+  @@unique([userId, slug])
+}
+
+enum SiteTypeCustomInputType {
+  TEXT      @map("text")
+  TEXTLONG  @map("textLong")
+  NUMBER    @map("number")
+  BOOL      @map("bool")
+}
+
+model SiteTypeCustomInput {
+  id          Int                      @id @default(autoincrement())
+  siteTypeId  Int
+  siteType    SiteType                @relation(fields: [siteTypeId], references: [id])
+  label       String
+  type        SiteTypeCustomInputType
+  required    Boolean
+  placeholder String                   @default("")
+}
+
 model Credential {
   id     Int    @id @default(autoincrement())
   type   String
@@ -42,6 +77,7 @@ model User {
   hideBranding        Boolean            @default(false)
   theme               String?
   createdDate         DateTime           @default(now()) @map(name: "created")
+  siteTypes           SiteType[]         @relation("user_sitetype")
   credentials         Credential[]
   completedOnboarding Boolean            @default(false)
   locale              String?

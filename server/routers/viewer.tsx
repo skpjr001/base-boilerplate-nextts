@@ -12,6 +12,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "@server/createRouter";
 import { resizeBase64Image } from "@server/lib/resizeBase64Image";
+import { resolve } from "path/posix";
 //import { webhookRouter } from "@server/routers/viewer/webhook";
 
 const checkUsername =
@@ -71,6 +72,50 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       return me;
     },
+  })
+
+  .query("siteTypes", {
+    async resolve({ctx}) {
+      const { prisma } = ctx;
+      const siteTypeSelect = Prisma.validator<Prisma.SiteTypeSelect>()({
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        position: true,
+        hidden: true,
+      })
+
+      const user = await prisma.user.findUnique({
+        where: {
+          id: ctx.user.id,
+        },
+        select:{
+          id: true,
+          username: true,
+          name: true,
+          avatar: true,
+          plan : true,
+          siteTypes:{
+            select:siteTypeSelect,
+            orderBy:[
+              {
+                position: "desc"
+              },
+              {
+                id: "asc"
+              }
+            ]
+          }
+        }
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+
+
+    }
   })
   
   .query("integrations", {
