@@ -49,7 +49,7 @@ model User {
   username            String?   @unique
   name                String?
   email               String    @unique
-  emailVerified       DateTime?
+  emailVerified       Boolean   @default(false)
   password            String?
   bio                 String?
   avatar              String?
