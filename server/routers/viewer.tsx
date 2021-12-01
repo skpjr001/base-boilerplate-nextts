@@ -109,6 +109,7 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         }
       });
+      console.log(user);
 
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });

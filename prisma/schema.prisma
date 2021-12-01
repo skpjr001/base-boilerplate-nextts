@@ -1,95 +1,45 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider        = "prisma-client-js"
-}
-
-
-enum UserPlan {
-  FREE
-  TRIAL
-  PRO
-}
-
-model SiteType {
-  id                      Int                    @id @default(autoincrement())
-  title                   String
-  slug                    String
-  description             String?
-  position                Int                    @default(0)
-  hidden                  Boolean                @default(false)
-  users                   User[]                 @relation("user_sitetype")
-  userId                  Int?
-  siteName                String?
-  customInputs            SiteTypeCustomInput[]
-  timeZone                String?
-  //price                   Int                    @default(0)
-  //currency                String                 @default("usd")
-
-  @@unique([userId, slug])
-}
-
-enum SiteTypeCustomInputType {
-  TEXT      @map("text")
-  TEXTLONG  @map("textLong")
-  NUMBER    @map("number")
-  BOOL      @map("bool")
-}
-
-model SiteTypeCustomInput {
-  id          Int                      @id @default(autoincrement())
-  siteTypeId  Int
-  siteType    SiteType                @relation(fields: [siteTypeId], references: [id])
-  label       String
-  type        SiteTypeCustomInputType
-  required    Boolean
-  placeholder String                   @default("")
-}
-
 model Credential {
   id     Int    @id @default(autoincrement())
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id])
   userId Int?
 }
 
 model User {
-  id                  Int                @id @default(autoincrement())
-  username            String?            @unique
+  id                  Int       @id @default(autoincrement())
+  username            String?   @unique
   name                String?
-  email               String             @unique
+  email               String    @unique
   emailVerified       DateTime?
   password            String?
   bio                 String?
   avatar              String?
-  timeZone            String             @default("Europe/London")
-  weekStart           String             @default("Sunday")
-  startTime           Int                @default(0)
-  endTime             Int                @default(1440)
-  bufferTime          Int                @default(0)
-  hideBranding        Boolean            @default(false)
+  timeZone            String    @default("Europe/London")
+  weekStart           String    @default("Sunday")
+  startTime           Int       @default(0)
+  endTime             Int       @default(1440)
+  bufferTime          Int       @default(0)
+  hideBranding        Boolean   @default(false)
   theme               String?
-  createdDate         DateTime           @default(now()) @map(name: "created")
-  siteTypes           SiteType[]         @relation("user_sitetype")
-  credentials         Credential[]
-  completedOnboarding Boolean            @default(false)
+  createdDate         DateTime  @default(now()) @map("created")
+  completedOnboarding Boolean   @default(false)
   locale              String?
   twoFactorSecret     String?
-  twoFactorEnabled    Boolean            @default(false)
-  plan                UserPlan           @default(PRO)
-  //webhooks            Webhook[]
-  brandColor          String             @default("#292929")
+  twoFactorEnabled    Boolean   @default(false)
+  plan                UserPlan  @default(PRO)
+  brandColor          String    @default("#292929")
 
-  @@map(name: "users")
+  @@map("users")
 }
-
 
 model VerificationRequest {
   id         Int      @id @default(autoincrement())
@@ -102,7 +52,6 @@ model VerificationRequest {
   @@unique([identifier, token])
 }
 
-
 model ResetPasswordRequest {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -111,50 +60,8 @@ model ResetPasswordRequest {
   expires   DateTime
 }
 
-// enum ReminderType {
-//   PENDING_BOOKING_CONFIRMATION
-// }
-
-// model ReminderMail {
-//   id             Int          @id @default(autoincrement())
-//   referenceId    Int
-//   reminderType   ReminderType
-//   elapsedMinutes Int
-//   createdAt      DateTime     @default(now())
-// }
-
-// enum PaymentType {
-//   STRIPE
-// }
-
-// model Payment {
-//   id         Int         @id @default(autoincrement())
-//   uid        String      @unique
-//   type       PaymentType
-//   bookingId  Int
-//   booking    Booking?    @relation(fields: [bookingId], references: [id])
-//   amount     Int
-//   fee        Int
-//   currency   String
-//   success    Boolean
-//   refunded   Boolean
-//   data       Json
-//   externalId String      @unique
-// }
-
-// enum WebhookTriggerEvents {
-//   BOOKING_CREATED
-//   BOOKING_RESCHEDULED
-//   BOOKING_CANCELLED
-// }
-
-// model Webhook {
-//   id              String                 @id @unique
-//   userId          Int
-//   subscriberUrl   String
-//   payloadTemplate String?
-//   createdAt       DateTime               @default(now())
-//   active          Boolean                @default(true)
-//   eventTriggers   WebhookTriggerEvents[]
-//   user            User                   @relation(fields: [userId], references: [id])
-// }
+enum UserPlan {
+  FREE
+  TRIAL
+  PRO
+}

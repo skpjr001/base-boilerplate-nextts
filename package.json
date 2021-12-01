@@ -4,7 +4,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "resetdb": "prisma migrate reset"
   },
   "dependencies": {
     "@heroicons/react": "^1.0.5",
