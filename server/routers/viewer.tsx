@@ -74,10 +74,10 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   })
 
-  .query("siteTypes", {
+  .query("websites", {
     async resolve({ctx}) {
       const { prisma } = ctx;
-      const siteTypeSelect = Prisma.validator<Prisma.SiteTypeSelect>()({
+      const websiteSelect = Prisma.validator<Prisma.SiteTypeSelect>()({
         id: true,
         title: true,
         slug: true,
@@ -96,8 +96,8 @@ const loggedInViewerRouter = createProtectedRouter()
           name: true,
           avatar: true,
           plan : true,
-          siteTypes:{
-            select:siteTypeSelect,
+          websites:{
+            select:websiteSelect,
             orderBy:[
               {
                 position: "desc"
@@ -109,13 +109,26 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         }
       });
-      console.log(user);
+      //console.log(user);
 
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
 
 
+
+      //For adding new websites
+      const canAddEvents = user.plan !== "FREE" || user.websites.length < 1;
+
+      console.log(user, canAddEvents);
+      return {
+        viewer: {
+          canAddEvents,
+          plan : user.plan
+        },
+        websites:user.websites,
+        profiles:[]
+      }
     }
   })
   
