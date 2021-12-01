@@ -12,7 +12,7 @@ import { PlusIcon } from '@heroicons/react/solid';
 
 
 
-type Profiles = inferQueryOutput<"viewer.siteTypes">["profiles"];
+type Profiles = inferQueryOutput<"viewer.websites">["profiles"];
 
 interface CreateEventTypeProps {
   canAddEvents: boolean;
@@ -37,7 +37,7 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
             ? {
               href:"/sites/create"
               }
-            :{
+            : {
               disabled:true
               })}
           StartIcon={PlusIcon}>
@@ -64,7 +64,7 @@ const SiteTypesPage = () => {
         subtitle={t("event_types_page_subtitle")}
         CTA={
           query.data &&
-          query.data.siteTypes.length !== 0 && (
+          query.data.websites.length !== 0 && (
             <Button 
               data-testid="new-event-type"
               {...(query.data.viewer.canAddEvents
@@ -99,13 +99,13 @@ const SiteTypesPage = () => {
                 className="mb-4"
               />
             )}
-            {data.siteTypes.map((group) => (
-              <Fragment key={group.profile.slug}>
+            {data.websites.map((website) => (
+              <Fragment key={website.slug}>
                 {/* hide list heading when there is only one (current user) */}
-                {(data.eventTypeGroups.length !== 1 || group.teamId) && (
+                {(data.websites.length !== 1 || website.teamId) && (
                   <EventTypeListHeading
-                    profile={group.profile}
-                    membershipCount={group.metadata.membershipCount}
+                    profile={website.profile}
+                    membershipCount={website.metadata.membershipCount}
                   />
                 )}
                 <EventTypeList
@@ -116,7 +116,7 @@ const SiteTypesPage = () => {
               </Fragment>
             ))}
 
-            {data.siteTypes.length === 0 && (
+            {data.websites.length === 0 && (
               <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
             )}
           </>

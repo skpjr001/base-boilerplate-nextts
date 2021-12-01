@@ -44,13 +44,6 @@ model WebsiteCustomInput {
   placeholder String                 @default("")
 }
 
-model Credential {
-  id     Int    @id @default(autoincrement())
-  type   String
-  key    Json
-  userId Int?
-}
-
 model User {
   id                  Int       @id @default(autoincrement())
   username            String?   @unique
