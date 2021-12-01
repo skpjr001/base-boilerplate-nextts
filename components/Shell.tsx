@@ -21,7 +21,7 @@ import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 //import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-//import { trpc } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
@@ -34,18 +34,18 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
-//import { useViewerI18n } from "./I18nLanguageHandler";
+import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "@components/Logo";
 
-// function useMeQuery() {
-//   const meQuery = trpc.useQuery(["viewer.me"], {
-//     retry(failureCount) {
-//       return failureCount > 3;
-//     },
-//   });
+function useMeQuery() {
+  const meQuery = trpc.useQuery(["viewer.me"], {
+    retry(failureCount) {
+      return failureCount > 3;
+    },
+  });
 
-//   return meQuery;
-// }
+  return meQuery;
+}
 
 function useRedirectToLoginIfUnauthenticated() {
   const [session, loading] = useSession();
@@ -68,29 +68,31 @@ function useRedirectToLoginIfUnauthenticated() {
   };
 }
 
-// function useRedirectToOnboardingIfNeeded() {
-//   const router = useRouter();
-//   const query = useMeQuery();
-//   const user = query.data;
+function useRedirectToOnboardingIfNeeded() {
+  const router = useRouter();
+  const query = useMeQuery();
+  const user = query.data;
 
-//   const [isRedirectingToOnboarding, setRedirecting] = useState(false);
-//   useEffect(() => {
-//     if (user && shouldShowOnboarding(user)) {
-//       setRedirecting(true);
-//     }
-//   }, [router, user]);
-//   useEffect(() => {
-//     if (isRedirectingToOnboarding) {
-//       router.replace({
-//         pathname: "/getting-started",
-//       });
-//     }
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [isRedirectingToOnboarding]);
-//   return {
-//     isRedirectingToOnboarding,
-//   };
-// }
+  
+
+  const [isRedirectingToOnboarding, setRedirecting] = useState(false);
+  useEffect(() => {
+    if (user && shouldShowOnboarding(user)) {
+      setRedirecting(true);
+    }
+  }, [router, user]);
+  useEffect(() => {
+    if (isRedirectingToOnboarding) {
+      router.replace({
+        pathname: "/gettin",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRedirectingToOnboarding]);
+  return {
+    isRedirectingToOnboarding,
+  };
+}
 
 export function ShellSubHeading(props: {
   title: ReactNode;
@@ -122,7 +124,7 @@ export default function Shell(props: {
   const { t } = useLocale();
   const router = useRouter();
   const { loading } = useRedirectToLoginIfUnauthenticated();
-  //const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
+  const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   //const telemetry = useTelemetry();
 
@@ -167,20 +169,21 @@ export default function Shell(props: {
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
-  //const query = useMeQuery();
-  //const user = query.data;
+  const query = useMeQuery();
+  const user = query.data;
 
-  const user = {}
-  //const i18n = useViewerI18n();
+  const i18n = useViewerI18n();
 
-  // if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
-  //   // show spinner whilst i18n is loading to avoid language flicker
-  //   return (
-  //     <div className="absolute z-50 flex items-center w-full h-screen bg-gray-50">
-  //       <Loader />
-  //     </div>
-  //   );
-  // }
+  //console.log(i18n.status,isRedirectingToOnboarding,loading,"HHHHHHHHHHHHHHHHHHHHHHHHHH")
+
+  if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
+    // show spinner whilst i18n is loading to avoid language flicker
+    return (
+      <div className="absolute z-50 flex items-center w-full h-screen bg-gray-50">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <>
       <CustomBranding val={user?.brandColor} />
@@ -312,10 +315,9 @@ export default function Shell(props: {
 
 function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
-  //const query = useMeQuery();
-  //const user = query.data;
+  const query = useMeQuery();
+  const user = query.data;
 
-  const user = {}
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>

@@ -6,15 +6,13 @@ import { useState } from "react";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 
-//import { ssrInit } from "@server/lib/ssr";
+import { ssrInit } from "@server/lib/ssr";
 
 export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
@@ -192,9 +190,9 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, locale } = context;
+  const { req } = context;
   const session = await getSession({ req });
-  //const ssr = await ssrInit(context);
+  const ssr = await ssrInit(context);
 
   if (session) {
     return {
@@ -208,8 +206,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       csrfToken: await getCsrfToken(context),
-      ...(await serverSideTranslations(locale!, ['common'])),
-      //trpcState: ssr.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 }

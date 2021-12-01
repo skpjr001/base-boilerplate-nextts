@@ -4,11 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
-//import { ssrInit } from "@server/lib/ssr";
+import { ssrInit } from "@server/lib/ssr";
 
 export default function Error() {
   const { t } = useLocale();
@@ -54,13 +53,11 @@ export default function Error() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { locale } = context;
-  //const ssr = await ssrInit(context);
+  const ssr = await ssrInit(context);
 
   return {
     props: {
-      ...(await serverSideTranslations(locale!, ['common'])),
-      //trpcState: ssr.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 }

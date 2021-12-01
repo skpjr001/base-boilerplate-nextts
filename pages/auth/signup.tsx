@@ -4,9 +4,7 @@ import { useRouter } from "next/router";
 import { useForm, SubmitHandler, FormProvider } from "react-hook-form";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-//import { useLocale } from "@lib/hooks/useLocale";
-import { useTranslation } from "next-i18next";
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { getSession } from "@lib/auth";
 
@@ -18,7 +16,7 @@ import { HeadSeo } from "@components/seo/head-seo";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
-//import { ssrInit } from "@server/lib/ssr";
+import { ssrInit } from "@server/lib/ssr";
 
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -31,8 +29,10 @@ type FormValues = {
   apiError: string;
 };
 
-export default function Signup({ email }: Props) {
-  const { t } = useTranslation();
+export default function Signup(props:Props) { //{email}:Props
+
+  //const  { email } = props;
+  const { t } = useLocale();
   const router = useRouter();
   const methods = useForm<FormValues>();
   const {
@@ -40,7 +40,7 @@ export default function Signup({ email }: Props) {
     formState: { errors, isSubmitting },
   } = methods;
 
-  methods.setValue("email", email);
+  //methods.setValue("email", email);
 
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
@@ -142,6 +142,7 @@ export default function Signup({ email }: Props) {
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const { locale, req } = ctx;
+  const ssr = await ssrInit(ctx);
   const session = await getSession({ req });
 
   if (session) {
@@ -151,6 +152,12 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         permanent: false,
       },
     };
+  }
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    }
   }
   //const ssr = await ssrInit(ctx);
   // const token = asStringOrNull(ctx.query.token);
@@ -199,8 +206,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   return {
     props: {
       //email: verificationRequest.identifier,
-      email:'sachin',
-      ...(await serverSideTranslations(locale!, ['common'])),
       //trpcState: ssr.dehydrate(),
     },
   };
