@@ -7,6 +7,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model SiteType {
+  id                      Int                    @id @default(autoincrement())
+  title                   String
+  slug                    String
+  description             String?
+  position                Int                    @default(0)
+  locations               Json?
+  length                  Int
+  hidden                  Boolean                @default(false)
+  users                   User[]                 @relation("user_sitetype")
+  userId                  Int?
+  eventName               String?
+  customInputs            SiteTypeCustomInput[]
+  timeZone                String?
+  //price                   Int                    @default(0)
+  //currency                String                 @default("usd")
+
+  @@unique([userId, slug])
+}
+
+enum SiteTypeCustomInputType {
+  TEXT      @map("text")
+  TEXTLONG  @map("textLong")
+  NUMBER    @map("number")
+  BOOL      @map("bool")
+}
+
+model SiteTypeCustomInput {
+  id          Int                     @id @default(autoincrement())
+  siteTypeId  Int
+  sitiType    SiteType                @relation(fields: [siteTypeId], references: [id])
+  label       String
+  type        SiteTypeCustomInputType
+  required    Boolean
+  placeholder String                  @default("")
+}
+
 model Credential {
   id     Int    @id @default(autoincrement())
   type   String
@@ -15,28 +52,29 @@ model Credential {
 }
 
 model User {
-  id                  Int       @id @default(autoincrement())
-  username            String?   @unique
+  id                  Int         @id @default(autoincrement())
+  username            String?     @unique
   name                String?
-  email               String    @unique
+  email               String      @unique
   emailVerified       DateTime?
   password            String?
   bio                 String?
   avatar              String?
-  timeZone            String    @default("Europe/London")
-  weekStart           String    @default("Sunday")
-  startTime           Int       @default(0)
-  endTime             Int       @default(1440)
-  bufferTime          Int       @default(0)
-  hideBranding        Boolean   @default(false)
+  timeZone            String      @default("Europe/London")
+  weekStart           String      @default("Sunday")
+  startTime           Int         @default(0)
+  endTime             Int         @default(1440)
+  bufferTime          Int         @default(0)
+  hideBranding        Boolean     @default(false)
   theme               String?
-  createdDate         DateTime  @default(now()) @map("created")
-  completedOnboarding Boolean   @default(false)
+  createdDate         DateTime    @default(now()) @map("created")
+  eventTypes          SiteType[]  @relation("user_sitetype")
+  completedOnboarding Boolean     @default(false)
   locale              String?
   twoFactorSecret     String?
-  twoFactorEnabled    Boolean   @default(false)
-  plan                UserPlan  @default(PRO)
-  brandColor          String    @default("#292929")
+  twoFactorEnabled    Boolean     @default(false)
+  plan                UserPlan    @default(PRO)
+  brandColor          String      @default("#292929")
 
   @@map("users")
 }
