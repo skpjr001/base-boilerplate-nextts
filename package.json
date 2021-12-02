@@ -8,6 +8,7 @@
     "resetdb": "prisma migrate reset"
   },
   "dependencies": {
+    "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@prisma/client": "^3.5.0",
     "@radix-ui/react-avatar": "^0.1.1",

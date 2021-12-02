@@ -44,16 +44,6 @@ async function getUserFromSession({
       avatar: true,
       twoFactorEnabled: true,
       brandColor: true,
-      credentials: {
-        select: {
-          id: true,
-          type: true,
-          key: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      },
       completedOnboarding: true,
       locale: true,
     },

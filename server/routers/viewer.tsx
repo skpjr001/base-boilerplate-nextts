@@ -77,13 +77,15 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("websites", {
     async resolve({ctx}) {
       const { prisma } = ctx;
-      const websiteSelect = Prisma.validator<Prisma.SiteTypeSelect>()({
+      const websiteSelect = Prisma.validator<Prisma.WebsiteSelect>()({
         id: true,
         title: true,
         slug: true,
         description: true,
         position: true,
         hidden: true,
+        url: true,
+        status: true
       })
 
       const user = await prisma.user.findUnique({
@@ -111,23 +113,49 @@ const loggedInViewerRouter = createProtectedRouter()
       });
       //console.log(user);
 
+      let customDomainWebsites = user?.websites.filter(website => website.hasCustomDomain === true);
+
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
 
+      type WebsiteGroup = {
+        profile: {
+          name: string,
+        },
+        metadata: {
+          websiteCount: number,
+        },
+        websites: (typeof user.websites[number] & {$disabled?: boolean})[];
+      }
+
+      let websiteGroups: WebsiteGroup[] = [];
+
+      websiteGroups.push({
+        profile: {
+         name:"Custom Domain Websites" 
+        },
+        metadata: {
+          websiteCount:
+        }
+      })
 
 
       //For adding new websites
       const canAddEvents = user.plan !== "FREE" || user.websites.length < 1;
 
-      console.log(user, canAddEvents);
+      //console.log(user, canAddEvents);
       return {
         viewer: {
           canAddEvents,
           plan : user.plan
         },
         websites:user.websites,
-        profiles:[]
+        // websiteGroups: websiteGroups,
+        // profiles:websiteGroups.map(group =>({
+        //   ...group.profile,
+        //   ...group.metadata
+        // }))
       }
     }
   })
@@ -210,6 +238,49 @@ const loggedInViewerRouter = createProtectedRouter()
       });
     },
   })
+
+  .mutation("websiteOrder", {
+    input: z.object({
+      ids: z.array(z.number()),
+    }),
+    async resolve({ input, ctx }) {
+      const { prisma, user } = ctx;
+      const allWebsites = await ctx.prisma.website.findMany({
+        select: {
+          id: true,
+        },
+        where: {
+          id: {
+            in: input.ids,
+          },
+          OR: [
+            {
+              userId: user.id,
+            },
+          ],
+        },
+      });
+      const allWebsiteIds = new Set(allWebsites.map((website) => website.id));
+      if (input.ids.some((id) => !allWebsiteIds.has(id))) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+      await Promise.all(
+        _.reverse(input.ids).map((id, position) => {
+          return prisma.website.update({
+            where: {
+              id,
+            },
+            data: {
+              position,
+            },
+          });
+        })
+      );
+    },
+  })
+
 
 
 export const viewerRouter = createRouter()

@@ -41,9 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ],
       AND: [
         {
-          emailVerified: {
-            not: null,
-          },
+          emailVerified: true,
         },
       ],
     },
@@ -63,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     update: {
       username,
       password: hashedPassword,
-      emailVerified: new Date(Date.now()),
+      emailVerified: true,
     },
     create: {
       username,

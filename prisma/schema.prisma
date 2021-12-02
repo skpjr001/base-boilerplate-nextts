@@ -17,7 +17,8 @@ model Website {
   status       String               @default("Building")
   hidden       Boolean              @default(false)
   userId       Int?
-  eventName    String?
+  websiteName  String?
+  hasCustomDomain Boolean           @default(false)
   customInputs WebsiteCustomInput[]
   timeZone     String?
   //price                   Int                    @default(0)
