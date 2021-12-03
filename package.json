@@ -5,7 +5,7 @@
     "build": "next build",
     "start": "next start",
     "postinstall": "prisma generate",
-    "resetdb": "prisma migrate reset"
+    "updateSchema": "prisma db push"
   },
   "dependencies": {
     "@headlessui/react": "^1.4.2",

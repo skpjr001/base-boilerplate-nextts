@@ -19,7 +19,7 @@ model Website {
   userId       Int?
   websiteName  String?
   hasCustomDomain Boolean           @default(false)
-  subDomain    String
+  subDomain    String?               
   customDomain String?
   customInputs WebsiteCustomInput[]
   timeZone     String?
