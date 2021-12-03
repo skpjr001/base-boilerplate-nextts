@@ -47,7 +47,7 @@ import Dropdown, {
 //import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 
-type Websites = inferQueryOutput<"viewer.websites">["websites"];
+type Profiles = inferQueryOutput<"viewer.websites">["profiles"];
 interface CreateEventTypeProps {
   canAddEvents: boolean;
 }
@@ -79,15 +79,16 @@ const CreateFirstEventTypeView = ({ canAddEvents }: CreateEventTypeProps) => {
   );
 };
 
+type WebsiteGroup = inferQueryOutput<"viewer.websites">["websiteGroups"][number];
+type Website = WebsiteGroup["websites"][number];
 interface WebsiteListProps {
-  readOnly: boolean;
-  sites: Websites;
+  profile: { slug: string | null}
+  sites: Website[];
 }
 
-const WebsiteList = ({ readOnly, sites }: WebsiteListProps): JSX.Element => {
+const WebsiteList = ({ sites }: WebsiteListProps): JSX.Element => {
   const { t } = useLocale();
 
-  console.log(sites, "siteslist");
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.websiteOrder", {
     onError: (err) => {
@@ -119,7 +120,7 @@ const WebsiteList = ({ readOnly, sites }: WebsiteListProps): JSX.Element => {
 
   return (
     <div className="mb-16 -mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
-      <ul className="divide-y divide-neutral-200" data-testid="event-types">
+      <ul className="divide-y divide-neutral-200" data-testid="websites">
         {sortableSites.map((site, index) => (
           <li
             key={site.id}
@@ -150,13 +151,13 @@ const WebsiteList = ({ readOnly, sites }: WebsiteListProps): JSX.Element => {
                     <div>
                       <span className="font-medium truncate text-neutral-900">{site.title}</span>
                       {site.hidden && (
-                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <span className="ml-12 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                           {t("hidden")}
                         </span>
                       )}
-                      {readOnly && (
+                      {site.status && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
-                          {t("readonly")}
+                          {site.status}
                         </span>
                       )}
                     </div>
@@ -178,7 +179,7 @@ const WebsiteList = ({ readOnly, sites }: WebsiteListProps): JSX.Element => {
                     )} */}
                     <Tooltip content={t("preview")}>
                       <a
-                        href={`${process.env.NEXT_PUBLIC_APP_URL}/${site.slug}`}
+                        href={`${process.env.NEXT_PUBLIC_APP_URL}/sites/${site.slug}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn-icon">
@@ -191,7 +192,7 @@ const WebsiteList = ({ readOnly, sites }: WebsiteListProps): JSX.Element => {
                         onClick={() => {
                           showToast(t("link_copied"), "success");
                           navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_APP_URL}/${site.slug}`
+                            `${process.env.NEXT_PUBLIC_APP_URL}/sites/${site.slug}`
                           );
                         }}
                         className="btn-icon">
@@ -280,7 +281,7 @@ const WebsiteList = ({ readOnly, sites }: WebsiteListProps): JSX.Element => {
 };
 
 interface WebsiteListHeadingProps {
-  profile: {name:string, image:string, slug:string};
+  profile: {name:string, image:string};
   websiteCount: number;
 }
 
@@ -328,6 +329,7 @@ const WebsiteListHeading = ({ profile,  websiteCount=0 }: WebsiteListHeadingProp
 const SiteTypesPage = () => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.websites"]);
+  console.log(query.data,"sitepage");
   
   return (
     <div>
@@ -340,7 +342,7 @@ const SiteTypesPage = () => {
         subtitle={t("event_types_page_subtitle")}
         CTA={
           query.data &&
-          query.data.websites.length !== 0 && (
+          query.data.viewer.totalWebsiteCount !==0 && (
             <Button 
               data-testid="new-event-type"
               {...(query.data.viewer.canAddEvents
@@ -375,23 +377,24 @@ const SiteTypesPage = () => {
                 className="mb-4"
               />
             )}
-            {data.websites.map((website) => (
-              <Fragment key={website.slug}>
+            {data.websiteGroups.map((group) => (
+              group.metadata.websiteCount !==0 &&
+              <Fragment key={group.profile.name}>
                 {/* hide list heading when there is only one (current user) */}
-                {(data.websites.length !== 1) && (
+                {(group.websites.length >= 1) && (
                   <WebsiteListHeading
-                    profile={{name:website.title,image:"sfsdaf",slug:website.slug}}
-                    websiteCount={3}
+                    profile={{name:group.profile.name,image:"sfsdaf"}}
+                    websiteCount={group.metadata.websiteCount}
                   />
                 )}
                 <WebsiteList
-                  sites={data.websites}
+                  sites={group.websites}
                   readOnly={true}
                 />
               </Fragment>
             ))}
 
-            {data.websites.length === 0 && (
+            {data.viewer.totalWebsiteCount === 0 && (
               <CreateFirstEventTypeView canAddEvents={data.viewer.canAddEvents} />
             )}
           </>

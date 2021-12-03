@@ -85,7 +85,9 @@ const loggedInViewerRouter = createProtectedRouter()
         position: true,
         hidden: true,
         url: true,
-        status: true
+        status: true,
+        hasCustomDomain: true,
+        websiteName: true
       })
 
       const user = await prisma.user.findUnique({
@@ -113,8 +115,7 @@ const loggedInViewerRouter = createProtectedRouter()
       });
       //console.log(user);
 
-      let customDomainWebsites = user?.websites.filter(website => website.hasCustomDomain === true);
-
+      
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -131,31 +132,57 @@ const loggedInViewerRouter = createProtectedRouter()
 
       let websiteGroups: WebsiteGroup[] = [];
 
+      let customDomainWebsites = user.websites.filter(website => website.hasCustomDomain === true);
+      let subDomainWebsites = user.websites.filter(website => website.hasCustomDomain === false);
+
+      //Free plan custom domain site limit
+      const customDomainMergedWebsites = customDomainWebsites.map((website,index) => ({
+        ...website,
+        $disabled: user.plan === "FREE" && index > 0,
+      }))
+
+      //Free plan sub domain site limit
+      const subDomainMergedWebsites = subDomainWebsites.map((website,index) => ({
+        ...website,
+        $disabled: user.plan === "FREE" && index > 0,
+      }))
+
       websiteGroups.push({
         profile: {
          name:"Custom Domain Websites" 
         },
         metadata: {
-          websiteCount:
-        }
+          websiteCount: customDomainWebsites.length
+        },
+        websites:_.orderBy(customDomainMergedWebsites, ["position", "id"], ["desc", "asc"])
+      })
+
+      websiteGroups.push({
+        profile: {
+          name:"Sub Domain Websites"
+         },
+         metadata: {
+           websiteCount: subDomainWebsites.length
+         },
+         websites:_.orderBy(subDomainMergedWebsites, ["position", "id"], ["desc", "asc"])
       })
 
 
       //For adding new websites
-      const canAddEvents = user.plan !== "FREE" || user.websites.length < 1;
+      const canAddEvents = user.plan !== "FREE" || user.websites.length < 2;
 
       //console.log(user, canAddEvents);
       return {
         viewer: {
           canAddEvents,
-          plan : user.plan
+          plan : user.plan,
+          totalWebsiteCount : user.websites.length
         },
-        websites:user.websites,
-        // websiteGroups: websiteGroups,
-        // profiles:websiteGroups.map(group =>({
-        //   ...group.profile,
-        //   ...group.metadata
-        // }))
+        websiteGroups: websiteGroups,
+        profiles: websiteGroups.map(group =>({
+          ...group.profile,
+          ...group.metadata
+        }))
       }
     }
   })

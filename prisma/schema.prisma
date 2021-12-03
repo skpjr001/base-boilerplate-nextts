@@ -19,6 +19,8 @@ model Website {
   userId       Int?
   websiteName  String?
   hasCustomDomain Boolean           @default(false)
+  subDomain    String
+  customDomain String?
   customInputs WebsiteCustomInput[]
   timeZone     String?
   //price                   Int                    @default(0)
